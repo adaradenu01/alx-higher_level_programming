@@ -1,0 +1,43 @@
+>>> add_integer = __import__('0-add_integer').add_integer
+
+checking integer
+>>> add_integer(1, 2)
+3
+
+checking float
+>>> add_integer(1.2, 2.3)
+3
+
+checking single parameter
+>>> add_integer(2)
+100
+
+checking with string parameter
+>>> add_integer(3, "School")
+Traceback (most recent call last):
+TypeError: b must be an integer
+
+checking with boolean parameter
+>>> add_integer(3, True)
+Traceback (most recent call last):
+TypeError: b must be an integer
+
+checking single boolean
+>>> add_integer(True)
+Traceback (most recent call last):
+TypeError: a must be an integer
+
+checking infinity
+>>> add_integer(5, float("inf"))
+Traceback (most recent call last):
+OverflowError: cannot convert float infinity to integer
+
+checking NaN
+>>> add_integer(5, float("nan"))
+Traceback (most recent call last):
+ValueError: cannot convert float NaN to integer
+
+checking without parameters
+>>> add_integer()
+Traceback (most recent call last):
+TypeError: add_integer() missing 1 required positional argument: 'a'
