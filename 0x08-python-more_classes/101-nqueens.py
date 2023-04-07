@@ -1,114 +1,104 @@
 #!/usr/bin/python3
-
-
 import sys
 
 
-def print_board(board):
-    """
-    Prints the board
-    :param board: 2D list representing the board
-    """
-    for row in board:
-        print(" ".join(row))
+def init_board(n):
+    """Initialize an `n`x`n` sized chessboard with 0's."""
+    board = []
+    [board.append([]) for i in range(n)]
+    [row.append(' ') for i in range(n) for row in board]
+    return (board)
 
 
-def is_safe(board, row, col, n, row_mask, ld_mask, rd_mask):
-    """
-    Checks if it is safe to place a queen at a specific position on the board
-    :param board: 2D list representing the board
-    :param row: row to place queen
-    :param col: column to place queen
-    :param n: size of the board
-    :param row_mask: bitmask indicating which rows have already been used
-    :param ld_mask: bitmask indicating which left diagonals have already been used
-    :param rd_mask: bitmask indicating which right diagonals have already been used
-    :return: True if it is safe, False if not
-    """
-    # Check the row mask to see if this row has already been used
-    if row_mask & (1 << row):
-        return False
-
-    # Check the left diagonal mask to see if this diagonal has already been used
-    if ld_mask & (1 << (row + col)):
-        return False
-
-    # Check the right diagonal mask to see if this diagonal has already been used
-    if rd_mask & (1 << (n - 1 - row + col)):
-        return False
-
-    return True
+def board_deepcopy(board):
+    """Return a deepcopy of a chessboard."""
+    if isinstance(board, list):
+        return list(map(board_deepcopy, board))
+    return (board)
 
 
-def solve_n_queens(board, col, n, row_mask, ld_mask, rd_mask):
-    """
-    Solves the N queens problem using backtracking and bit manipulation
-    :param board: 2D list representing the board
-    :param col: column to start in
-    :param n: size of the board
-    :param row_mask: bitmask indicating which rows have already been used
-    :param ld_mask: bitmask indicating which left diagonals have already been used
-    :param rd_mask: bitmask indicating which right diagonals have already been used
-    """
-    # Base case: if all queens are placed, print the board
-    if col == n:
-        print_board(board)
-        print()
-        return
+def get_solution(board):
+    """Return the list of lists representation of a solved chessboard."""
+    solution = []
+    for r in range(len(board)):
+        for c in range(len(board)):
+            if board[r][c] == "Q":
+                solution.append([r, c])
+                break
+    return (solution)
 
-    # Compute the valid positions for the current column
-    valid_positions = ((1 << n) - 1) & ~(row_mask | ld_mask | rd_mask)
 
-    # Recur for each valid position
-    while valid_positions:
-        # Get the least significant bit in the valid positions
-        position = valid_positions & -valid_positions
+def xout(board, row, col):
+    # X out all forward spots
+    for c in range(col + 1, len(board)):
+        board[row][c] = "x"
+    # X out all backwards spots
+    for c in range(col - 1, -1, -1):
+        board[row][c] = "x"
+    # X out all spots below
+    for r in range(row + 1, len(board)):
+        board[r][col] = "x"
+    # X out all spots above
+    for r in range(row - 1, -1, -1):
+        board[r][col] = "x"
+    # X out all spots diagonally down to the right
+    c = col + 1
+    for r in range(row + 1, len(board)):
+        if c >= len(board):
+            break
+        board[r][c] = "x"
+        c += 1
+    # X out all spots diagonally up to the left
+    c = col - 1
+    for r in range(row - 1, -1, -1):
+        if c < 0:
+            break
+        board[r][c]
+        c -= 1
+    # X out all spots diagonally up to the right
+    c = col + 1
+    for r in range(row - 1, -1, -1):
+        if c >= len(board):
+            break
+        board[r][c] = "x"
+        c += 1
+    # X out all spots diagonally down to the left
+    c = col - 1
+    for r in range(row + 1, len(board)):
+        if c < 0:
+            break
+        board[r][c] = "x"
+        c -= 1
 
-        # Clear the least significant bit in the valid positions
-        valid_positions &= valid_positions - 1
 
-        # Compute the row and place the queen
-        row = bin(position - 1).count("1")
-        board[row][col] = "Q"
+def recursive_solve(board, row, queens, solutions):
+    if queens == len(board):
+        solutions.append(get_solution(board))
+        return (solutions)
 
-        # Update the masks
-        row_mask |= 1 << row
-        ld_mask |= 1 << (row + col)
-        rd_mask |= 1 << (n - 1 - row + col)
+    for c in range(len(board)):
+        if board[row][c] == " ":
+            tmp_board = board_deepcopy(board)
+            tmp_board[row][c] = "Q"
+            xout(tmp_board, row, c)
+            solutions = recursive_solve(tmp_board, row + 1,
+                                        queens + 1, solutions)
 
-        # Recur for the next column
-        solve_n_queens(board, col + 1, n, row_mask, ld_mask, rd_mask)
-
-        # Remove the queen and update the masks
-        board[row][col] = "."
-        row_mask &= ~(1 << row)
-        ld_mask &= ~(1 << (row + col))
-        rd_mask &= ~(1 << (n - 1 - row + col))
+    return (solutions)
 
 
 if __name__ == "__main__":
-    # Check if the correct number of arguments is provided
     if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
-
-    # Check if N is an integer
-    try:
-        n = int(sys.argv[1])
-    except ValueError:
+    if sys.argv[1].isdigit() is False:
         print("N must be a number")
         sys.exit(1)
-
-    # Check if N is at least 4
-    if n < 4:
+    if int(sys.argv[1]) < 4:
         print("N must be at least 4")
         sys.exit(1)
 
-    # Initialize the board and masks
-    board = [["." for _ in range(n)] for _ in range(n)]
-    row_mask = 0
-    ld_mask = 0
-    rd_mask = 0
-
-    # Solve the N queens problem
-    solve_n_queens(board, 0, n, row_mask, ld_mask, rd_mask)
+    board = init_board(int(sys.argv[1]))
+    solutions = recursive_solve(board, 0, 0, [])
+    for sol in solutions:
+        print(sol)
