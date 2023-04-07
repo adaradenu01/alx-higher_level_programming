@@ -3,8 +3,6 @@
 
 
 class LockedClass:
-    """
-    Prevent the user from creating new attributes in the LockedClass except for the declared attributes called 'first_name'.
-    """
+    """Prevent the user from creating new attributes in the LockedClass except for the declared attributes called 'first_name'"""
 
     __slots__ = ["first_name"]
